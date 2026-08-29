@@ -556,6 +556,28 @@ textarea.wfield{min-height:96px}
   border:1px solid var(--line);border-radius:20px;padding:7px 16px;cursor:pointer;background:#fff;color:var(--ink2)}
 .wc-admin-save:disabled,.wc-admin-del:disabled{opacity:.5}
 
+/* Wish Sending Feedback & Success Modal */
+.wish-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(18,25,40,.72);
+  backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:fadeIn .3s ease}
+.wish-modal-card{background:linear-gradient(135deg,#ffffff,#f7f9fc);border:1px solid rgba(212,175,55,.5);
+  border-radius:16px;padding:34px 28px;max-width:380px;width:100%;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);animation:modalPop .4s cubic-bezier(.17,.67,.3,1.33)}
+@keyframes modalPop{from{opacity:0;transform:scale(.8) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.wish-modal-icon{font-size:44px;margin-bottom:12px;animation:floatBounce 2.2s ease-in-out infinite}
+@keyframes floatBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.wish-modal-title{font-family:'Cinzel',serif;font-size:22px;color:var(--navy);margin-bottom:8px;letter-spacing:.08em}
+.wish-modal-sub{font-family:'Cormorant Garamond',serif;font-size:17.5px;color:var(--ink2);line-height:1.55;margin-bottom:18px}
+.wish-modal-hearts{font-size:16px;letter-spacing:6px;margin-bottom:22px}
+.wish-modal-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:#fff;background:linear-gradient(135deg,#2b3550,#48577d);border:1px solid rgba(212,175,55,.4);
+  padding:12px 34px;border-radius:30px;cursor:pointer;box-shadow:0 4px 14px rgba(43,53,80,.25);transition:all .2s}
+.wish-modal-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(43,53,80,.35)}
+.wish-burst-particle{position:fixed;z-index:10000;font-size:24px;pointer-events:none;animation:floatUpBurst 3s ease-out forwards}
+@keyframes floatUpBurst{0%{opacity:1;transform:translateY(0) scale(.6) rotate(0deg)}
+  50%{opacity:.9;transform:translateY(-40vh) scale(1.2) rotate(15deg)}
+  100%{opacity:0;transform:translateY(-80vh) scale(.8) rotate(-15deg)}}
+
 /* ── FOOTER ── */
 footer{background:var(--navy);padding:56px 40px 96px;display:grid;
   grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;
@@ -1092,6 +1114,17 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
     </div>
   </div>
 </section>
+
+<!-- WISH SUCCESS MODAL -->
+<div id="wishSuccessModal" class="wish-modal-overlay" style="display:none" onclick="if(event.target===this) closeWishSuccessModal()">
+  <div class="wish-modal-card">
+    <div class="wish-modal-icon">🕊️</div>
+    <h3 class="wish-modal-title">Blessing Sent!</h3>
+    <p class="wish-modal-sub">Thank you for your heartfelt wish for<br><strong>Mohamed Naheem &amp; Reem Fathima</strong>.</p>
+    <div class="wish-modal-hearts">✨ 🤍 ✨</div>
+    <button class="wish-modal-btn" onclick="closeWishSuccessModal()">Close</button>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer>
@@ -1712,13 +1745,40 @@ function loadMore() {
     });
 }
 function startLive() { /* REST API mode uses polling or refresh */ }
+function showWishSuccessModal() {
+  var m = document.getElementById("wishSuccessModal");
+  if (m) m.style.display = "flex";
+}
+function closeWishSuccessModal() {
+  var m = document.getElementById("wishSuccessModal");
+  if (m) m.style.display = "none";
+}
+function triggerWishBurst() {
+  var icons = ["🤍", "✨", "🕊️", "🌸", "💖"];
+  for (var i = 0; i < 15; i++) {
+    (function(idx){
+      setTimeout(function(){
+        var p = document.createElement("div");
+        p.className = "wish-burst-particle";
+        p.textContent = icons[idx % icons.length];
+        p.style.left = (15 + Math.random() * 70) + "vw";
+        p.style.bottom = "10vh";
+        p.style.animationDuration = (2 + Math.random() * 1.5) + "s";
+        document.body.appendChild(p);
+        setTimeout(function(){ p.remove(); }, 3500);
+      }, idx * 120);
+    })(i);
+  }
+}
+
 function submitWish() {
   var nameEl = document.getElementById("wisherName");
   var msgEl  = document.getElementById("wisherMsg");
   var btn    = document.querySelector(".wfl-submit");
   var name = nameEl.value.trim(), msg = msgEl.value.trim();
   if (!name || !msg) { toast("Please add your name and a message", true); return; }
-  btn.disabled = true; btn.style.opacity = ".5";
+  btn.disabled = true; btn.style.opacity = ".7";
+  btn.textContent = "✨ Sending Your Blessing...";
   
   fetch(API_BASE_URL + "/api/wishes", {
     method: "POST",
@@ -1731,6 +1791,7 @@ function submitWish() {
   })
   .then(function(newWish){
     btn.disabled = false; btn.style.opacity = "";
+    btn.textContent = "Send Your Wish";
     var ownKeys = JSON.parse(localStorage.getItem(LS + "ownWishKeys") || "[]");
     ownKeys.unshift(newWish.key); if (ownKeys.length > 20) ownKeys.length = 20;
     localStorage.setItem(LS + "ownWishKeys", JSON.stringify(ownKeys));
@@ -1740,11 +1801,13 @@ function submitWish() {
     if (empty) empty.remove();
     g.insertBefore(wishCard(newWish.key, newWish), g.firstChild);
     if (adminMode) renderAdminReplyButtons();
-    toast("Your blessing has been sent 🤍");
     loadWishCount();
+    showWishSuccessModal();
+    triggerWishBurst();
   })
   .catch(function(err){
     btn.disabled = false; btn.style.opacity = "";
+    btn.textContent = "Send Your Wish";
     toast("Could not send — check backend connection and try again", true);
   });
 }
