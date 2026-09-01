@@ -1318,26 +1318,33 @@ function startHeroFilm() {
   var v = document.getElementById("heroVideo");
   if (!v || !heroVideoUrl || v.dataset.started === "1") return;
   v.dataset.started = "1";
-  v.loop = false;
-  v.muted = false;            /* the clip carries its own music - play it */
+  v.loop = true;
+  v.muted = false;            /* the clip carries its own music - play & replay continuously */
   try { v.volume = 1; } catch(e){}
-  v.onended = filmDone;
+  v.onended = function() {
+    v.currentTime = 0;
+    var p = v.play(); if (p && p.catch) p.catch(function(){});
+  };
   v.onerror = filmDone;
   v.src = heroVideoUrl;
   try { v.load(); } catch(e){}
   playFilm(v, false);
-  clearTimeout(heroNameTimer);
-  heroNameTimer = setTimeout(filmDone, 15000);
+  filmDone();
 }
 function pauseHeroFilm() {
   var v = document.getElementById("heroVideo");
-  if (v && !v.paused && !v.ended) { try { v.pause(); } catch(e){} }
+  var bgm = document.getElementById("bgmAudio");
+  if (v && !v.paused) { try { v.pause(); v.dataset.wasPlaying = "1"; } catch(e){} }
+  if (bgm && !bgm.paused) { try { bgm.pause(); bgm.dataset.wasPlaying = "1"; } catch(e){} }
 }
 function resumeHeroFilm() {
   var v = document.getElementById("heroVideo");
-  /* never restart a film that has already run - it plays once */
-  if (v && v.dataset.started === "1" && v.paused && !v.ended) {
+  var bgm = document.getElementById("bgmAudio");
+  if (v && (v.dataset.wasPlaying === "1" || v.dataset.started === "1")) {
     var p = v.play(); if (p && p.catch) p.catch(function(){});
+  }
+  if (bgm && bgm.dataset.wasPlaying === "1") {
+    var p2 = bgm.play(); if (p2 && p2.catch) p2.catch(function(){});
   }
 }
 document.addEventListener("visibilitychange", function(){
