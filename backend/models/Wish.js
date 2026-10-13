@@ -9,6 +9,8 @@ const wishSchema = new mongoose.Schema({
     msg: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now }
   }
+}, { timestamps: true });
+
 // Index on createdAt descending for ultra-fast query and sorting
 wishSchema.index({ createdAt: -1 });
 
