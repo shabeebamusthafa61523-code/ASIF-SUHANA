@@ -1,0 +1,16 @@
+name: Keep Render Backend Warm
+
+on:
+  schedule:
+    # Runs every 10 minutes (Render sleeps after 15 minutes of inactivity)
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Backend API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          curl -s -f --retry 3 https://asif-suhana.onrender.com/api/health || true

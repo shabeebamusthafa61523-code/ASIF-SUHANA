@@ -32,6 +32,7 @@
 <!-- runtime origins (standard #17) -->
 <link rel="preconnect" href="https://asif-suhana.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="https://asif-suhana.onrender.com">
+<link rel="preload" href="https://asif-suhana.onrender.com/api/wishes?page=1&limit=3" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
 <link rel="preconnect" href="https://imagedelivery.net/">
@@ -1094,11 +1095,48 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
 
     <div class="wwall">
       <div class="wish-count-header">
-        <p class="wish-count-label" style="display:none"><span id="wishCount">0</span> blessings received</p>
+        <p class="wish-count-label"><span id="wishCount">3</span> blessings received</p>
       </div>
       <div id="wgrid">
-        <div class="wish-skel"></div>
-        <div class="wish-skel"></div>
+        <div class="wcard" data-key="6ace09b23f37417038c3bca0">
+          <div class="wc-top">
+            <div class="wc-av">MR</div>
+            <div class="wc-meta"><div class="wc-name">Mujeeb rahman</div><div class="wc-time">13 Oct, 10:36 AM</div></div>
+          </div>
+          <p class="wc-msg">Wish u a Happy married life bro..</p>
+          <div class="wc-footer">
+            <button class="wc-heart" onclick="likeWish('6ace09b23f37417038c3bca0', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
+              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
+              <span class="wc-hcnt"></span>
+            </button>
+          </div>
+        </div>
+        <div class="wcard" data-key="6ace08c53f37417038c3bc98">
+          <div class="wc-top">
+            <div class="wc-av">F</div>
+            <div class="wc-meta"><div class="wc-name">Friend</div><div class="wc-time">13 Oct, 10:32 AM</div></div>
+          </div>
+          <p class="wc-msg">All the best guys</p>
+          <div class="wc-footer">
+            <button class="wc-heart" onclick="likeWish('6ace08c53f37417038c3bc98', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
+              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
+              <span class="wc-hcnt"></span>
+            </button>
+          </div>
+        </div>
+        <div class="wcard" data-key="6acdf9042ad840efd7a79fb4">
+          <div class="wc-top">
+            <div class="wc-av">X</div>
+            <div class="wc-meta"><div class="wc-name">xfdg</div><div class="wc-time">13 Oct, 9:25 AM</div></div>
+          </div>
+          <p class="wc-msg">dxtrg</p>
+          <div class="wc-footer">
+            <button class="wc-heart" onclick="likeWish('6acdf9042ad840efd7a79fb4', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
+              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
+              <span class="wc-hcnt"></span>
+            </button>
+          </div>
+        </div>
       </div>
       <div id="loadmore-wrap" style="display:none">
         <button id="viewMoreSideBtn" class="view-more-side-btn" style="display:none" onclick="toggleShowAllWishes()">+ More</button>
@@ -1148,6 +1186,48 @@ var LS               = "sf2_";    /* github.io is ONE origin for every invite -
 var ADMIN_PIN        = "2026SF";
 var WORKER_URL       = "https://digiwed-media-broker.murshid161.workers.dev/";
 var COUPLE_LABEL     = "Asif Rahman & Suhana Farha";
+
+/* Early prefetch for instant response */
+var __wishesPromise = null;
+try {
+  __wishesPromise = fetch(API_BASE_URL + "/api/wishes?page=1&limit=3")
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return null; });
+} catch(e){}
+
+var PRELOADED_WISHES = {
+  total: 3,
+  hasMore: false,
+  wishes: [
+    {
+      key: "6ace09b23f37417038c3bca0",
+      name: "Mujeeb rahman",
+      msg: "Wish u a Happy married life bro..",
+      time: "13 Oct, 10:36 AM",
+      likes: 0,
+      reply: null,
+      ts: 1791887794380
+    },
+    {
+      key: "6ace08c53f37417038c3bc98",
+      name: "Friend",
+      msg: "All the best guys",
+      time: "13 Oct, 10:32 AM",
+      likes: 0,
+      reply: null,
+      ts: 1791887557203
+    },
+    {
+      key: "6acdf9042ad840efd7a79fb4",
+      name: "xfdg",
+      msg: "dxtrg",
+      time: "13 Oct, 9:25 AM",
+      likes: 0,
+      reply: null,
+      ts: 1791883524788
+    }
+  ]
+};
 
 var FIREBASE_CONFIG = {
   apiKey:"AIzaSyB41fvxvl1KeHOro6WKJ72o22izuCpJ-b4",
@@ -1663,7 +1743,7 @@ function wishCard(key, w) {
   var liked = !!localStorage.getItem(LS + "liked_" + key);
   if (liked) hBtn.classList.add("liked");
   var hSpan = document.createElement("span"); hSpan.className = "wc-heart-ico"; hSpan.innerHTML = heartSVG(liked);
-  var hCnt = document.createElement("span"); hCnt.textContent = w.likes ? String(w.likes) : "";
+  var hCnt = document.createElement("span"); hCnt.className = "wc-hcnt"; hCnt.textContent = w.likes ? String(w.likes) : "";
   hBtn.append(hSpan, hCnt);
   hBtn.onclick = function(){ likeWish(key, hBtn, hSpan, hCnt); };
   ftr.appendChild(hBtn);
@@ -1722,32 +1802,36 @@ function loadInitial() {
   if (wishesBound) return; wishesBound = true;
   currentPage = 1;
 
-  // 1. Instant render from local cache (0ms perceived latency)
+  // 1. Instant 0ms render from localStorage cache or preloaded data
   try {
     var cached = localStorage.getItem(LS + "cached_wishes");
+    var toRender = null;
     if (cached) {
-      var cachedObj = JSON.parse(cached);
-      if (cachedObj && cachedObj.wishes && cachedObj.wishes.length) {
-        renderWishesData(cachedObj);
-      }
+      toRender = JSON.parse(cached);
     }
-  } catch(e) {}
+    if (!toRender || !toRender.wishes || !toRender.wishes.length) {
+      toRender = PRELOADED_WISHES;
+    }
+    if (toRender && toRender.wishes && toRender.wishes.length) {
+      renderWishesData(toRender);
+    }
+  } catch(e) {
+    if (typeof PRELOADED_WISHES !== "undefined") renderWishesData(PRELOADED_WISHES);
+  }
 
-  // 2. Fetch fresh wishes from API in background
-  fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data && data.wishes) {
-        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
-        renderWishesData(data);
-      }
-    })
-    .catch(function(err){
-      console.warn("wishes load:", err);
-      if (!grid().children.length || grid().querySelector(".wish-skel")) {
-        grid().innerHTML = '<div class="w-empty">Wishes will appear here.</div>';
-      }
-    });
+  // 2. Fetch fresh wishes from API in background (using early prefetch if already started)
+  var p = __wishesPromise || fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE).then(function(r){ return r.json(); });
+  p.then(function(data){
+    if (data && data.wishes) {
+      try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+      renderWishesData(data);
+    }
+  }).catch(function(err){
+    console.warn("wishes load:", err);
+    if (!grid().children.length || grid().querySelector(".wish-skel")) {
+      if (typeof PRELOADED_WISHES !== "undefined") renderWishesData(PRELOADED_WISHES);
+    }
+  });
 }
 function loadMore() {
   if (reachedEnd) return;
