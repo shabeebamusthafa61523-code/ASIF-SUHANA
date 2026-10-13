@@ -516,6 +516,8 @@ textarea.wfield{min-height:96px}
   box-shadow:0 4px 16px rgba(43,53,80,.05);animation:rise .4s ease both;position:relative;
   transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
 .wcard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(43,53,80,.10);border-color:rgba(212,175,55,.6)}
+.wcard-new{animation:wishPopIn .6s cubic-bezier(0.16, 1, 0.3, 1) both;border-color:rgba(212,175,55,.85)!important;box-shadow:0 8px 28px rgba(212,175,55,.22)!important}
+@keyframes wishPopIn{0%{opacity:0;transform:translateY(-14px) scale(.94)}60%{transform:translateY(0) scale(1.02)}100%{opacity:1;transform:none}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .wc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .wc-av{width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:flex;
@@ -1789,7 +1791,22 @@ function submitWish() {
     var g = grid();
     var empty = g.querySelector(".w-empty");
     if (empty) empty.remove();
-    g.insertBefore(wishCard(newWish.key, newWish), g.firstChild);
+    var newCard = wishCard(newWish.key, newWish);
+    newCard.classList.add("wcard-new");
+    g.insertBefore(newCard, g.firstChild);
+
+    try {
+      var cached = localStorage.getItem(LS + "cached_wishes");
+      if (cached) {
+        var cObj = JSON.parse(cached);
+        if (cObj && cObj.wishes) {
+          cObj.wishes.unshift(newWish);
+          cObj.total = (cObj.total || 0) + 1;
+          localStorage.setItem(LS + "cached_wishes", JSON.stringify(cObj));
+        }
+      }
+    } catch(e) {}
+
     if (adminMode) renderAdminReplyButtons();
     loadWishCount();
     showWishSuccessModal();

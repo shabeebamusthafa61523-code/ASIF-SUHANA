@@ -115,9 +115,10 @@ app.get('/api/wishes', async (req, res) => {
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
+          .maxTimeMS(3000)
           .select('name msg time likes reply createdAt')
           .lean(),
-        Wish.estimatedDocumentCount()
+        Wish.countDocuments().maxTimeMS(3000)
       ]);
 
       const formatted = wishes.map(w => ({
