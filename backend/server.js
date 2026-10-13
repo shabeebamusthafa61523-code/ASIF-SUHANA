@@ -96,6 +96,14 @@ function invalidateCache() {
   page1CacheTime = 0;
 }
 
+function formatTimeIST(date) {
+  const d = date ? new Date(date) : new Date();
+  return (
+    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }) + ', ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
+  );
+}
+
 // GET Wishes (Paginated - High Performance)
 app.get('/api/wishes', async (req, res) => {
   try {
@@ -125,7 +133,7 @@ app.get('/api/wishes', async (req, res) => {
         key: w._id.toString(),
         name: w.name,
         msg: w.msg,
-        time: w.time || (w.createdAt ? new Date(w.createdAt).toLocaleString() : ''),
+        time: (w.createdAt ? formatTimeIST(w.createdAt) : w.time) || formatTimeIST(),
         likes: w.likes || 0,
         reply: w.reply && w.reply.msg ? { msg: w.reply.msg, ts: w.reply.createdAt ? new Date(w.reply.createdAt).getTime() : Date.now() } : null,
         ts: w.createdAt ? new Date(w.createdAt).getTime() : Date.now()
@@ -162,10 +170,7 @@ app.post('/api/wishes', async (req, res) => {
     invalidateCache();
 
     const now = new Date();
-    const formattedTime = time || (
-      now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' +
-      now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    );
+    const formattedTime = time || formatTimeIST(now);
 
     if (isMongoConnected) {
       const wish = await Wish.create({ name, msg, time: formattedTime });
