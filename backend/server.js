@@ -86,32 +86,64 @@ app.post('/api/admin/config', async (req, res) => {
   }
 });
 
-// GET Wishes (Paginated)
+// Fast In-Memory Cache for Top Wishes
+let page1Cache = null;
+let page1CacheTime = 0;
+const CACHE_TTL_MS = 15000; // 15 seconds
+
+function invalidateCache() {
+  page1Cache = null;
+  page1CacheTime = 0;
+}
+
+// GET Wishes (Paginated - High Performance)
 app.get('/api/wishes', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 6));
     const skip = (page - 1) * limit;
+
+    // Fast Cache Hit for Page 1
+    if (page === 1 && limit === 6 && page1Cache && (Date.now() - page1CacheTime < CACHE_TTL_MS)) {
+      res.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=10');
+      return res.json(page1Cache);
+    }
 
     if (isMongoConnected) {
       const [wishes, total] = await Promise.all([
-        Wish.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
-        Wish.countDocuments()
+        Wish.find()
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .select('name msg time likes reply createdAt')
+          .lean(),
+        Wish.estimatedDocumentCount()
       ]);
+
       const formatted = wishes.map(w => ({
         key: w._id.toString(),
         name: w.name,
         msg: w.msg,
-        time: w.time || new Date(w.createdAt).toLocaleString(),
-        likes: w.likes,
-        reply: w.reply && w.reply.msg ? { msg: w.reply.msg, ts: w.reply.createdAt.getTime() } : null,
-        ts: w.createdAt.getTime()
+        time: w.time || (w.createdAt ? new Date(w.createdAt).toLocaleString() : ''),
+        likes: w.likes || 0,
+        reply: w.reply && w.reply.msg ? { msg: w.reply.msg, ts: w.reply.createdAt ? new Date(w.reply.createdAt).getTime() : Date.now() } : null,
+        ts: w.createdAt ? new Date(w.createdAt).getTime() : Date.now()
       }));
-      return res.json({ wishes: formatted, total, hasMore: skip + wishes.length < total });
+
+      const result = { wishes: formatted, total, hasMore: skip + wishes.length < total };
+
+      if (page === 1 && limit === 6) {
+        page1Cache = result;
+        page1CacheTime = Date.now();
+      }
+
+      res.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=10');
+      return res.json(result);
     }
 
     const total = memoryWishes.length;
     const paginated = memoryWishes.slice(skip, skip + limit);
+    res.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=10');
     res.json({ wishes: paginated, total, hasMore: skip + paginated.length < total });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -125,6 +157,8 @@ app.post('/api/wishes', async (req, res) => {
     if (!name || !msg) {
       return res.status(400).json({ error: 'Name and message are required' });
     }
+
+    invalidateCache();
 
     const now = new Date();
     const formattedTime = time || (
@@ -165,6 +199,7 @@ app.post('/api/wishes', async (req, res) => {
 app.post('/api/wishes/:id/like', async (req, res) => {
   try {
     const id = req.params.id;
+    invalidateCache();
     if (isMongoConnected) {
       const wish = await Wish.findByIdAndUpdate(id, { $inc: { likes: 1 } }, { new: true });
       if (!wish) return res.status(404).json({ error: 'Wish not found' });
@@ -190,6 +225,7 @@ app.post('/api/wishes/:id/reply', async (req, res) => {
       return res.status(401).json({ error: 'Invalid PIN' });
     }
 
+    invalidateCache();
     const id = req.params.id;
     if (isMongoConnected) {
       const wish = await Wish.findByIdAndUpdate(id, { reply: { msg, createdAt: new Date() } }, { new: true });
@@ -216,6 +252,7 @@ app.delete('/api/wishes/:id/reply', async (req, res) => {
       return res.status(401).json({ error: 'Invalid PIN' });
     }
 
+    invalidateCache();
     const id = req.params.id;
     if (isMongoConnected) {
       const wish = await Wish.findByIdAndUpdate(id, { reply: { msg: '', createdAt: null } }, { new: true });

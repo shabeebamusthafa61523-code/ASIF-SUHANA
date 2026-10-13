@@ -28,6 +28,8 @@
 <meta name="twitter:image" content="og-thumb.jpg">
 
 <!-- runtime origins (standard #17) -->
+<link rel="preconnect" href="https://naheem-reem-zrkd.onrender.com" crossorigin>
+<link rel="dns-prefetch" href="https://naheem-reem-zrkd.onrender.com">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
 <link rel="preconnect" href="https://imagedelivery.net/">
@@ -1667,41 +1669,67 @@ function setWishCount(n) {
   var row = el.closest(".wish-count-label");
   if (row) row.style.display = n ? "" : "none";
 }
+function renderWishesData(data) {
+  if (!data) return;
+  setWishCount(data.total || 0);
+  var sideBtn = document.getElementById("viewMoreSideBtn");
+  if (!data.wishes || !data.wishes.length) {
+    grid().innerHTML = '<div class="w-empty">Be the first to send a blessing 🤍</div>';
+    if (sideBtn) sideBtn.style.display = "none";
+    return;
+  }
+  oldestKey = data.wishes[data.wishes.length - 1].key;
+  grid().innerHTML = "";
+  data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+  if (data.hasMore) {
+    if (sideBtn) sideBtn.style.display = "inline-flex";
+    document.getElementById("loadmore-wrap").style.display = "block";
+  } else {
+    if (sideBtn) sideBtn.style.display = "none";
+    document.getElementById("loadmore-wrap").style.display = "none";
+  }
+  if (adminMode) renderAdminReplyButtons();
+}
+
 function loadWishCount() {
+  var el = document.getElementById("wishCount");
+  if (el && el.textContent && el.textContent !== "0") return;
   fetch(API_BASE_URL + "/api/wishes?page=1&limit=1")
     .then(function(r){ return r.json(); })
-    .then(function(o){ setWishCount(o.total || 0); })
+    .then(function(o){ if (o && o.total !== undefined) setWishCount(o.total); })
     .catch(function(){});
 }
+
 var currentPage = 1;
 function loadInitial() {
   if (wishesBound) return; wishesBound = true;
   currentPage = 1;
+
+  // 1. Instant render from local cache (0ms perceived latency)
+  try {
+    var cached = localStorage.getItem(LS + "cached_wishes");
+    if (cached) {
+      var cachedObj = JSON.parse(cached);
+      if (cachedObj && cachedObj.wishes && cachedObj.wishes.length) {
+        renderWishesData(cachedObj);
+      }
+    }
+  } catch(e) {}
+
+  // 2. Fetch fresh wishes from API in background
   fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE)
     .then(function(r){ return r.json(); })
     .then(function(data){
-      setWishCount(data.total || 0);
-      var sideBtn = document.getElementById("viewMoreSideBtn");
-      if (!data.wishes || !data.wishes.length) {
-        grid().innerHTML = '<div class="w-empty">Be the first to send a blessing 🤍</div>';
-        if (sideBtn) sideBtn.style.display = "none";
-        return;
+      if (data && data.wishes) {
+        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+        renderWishesData(data);
       }
-      oldestKey = data.wishes[data.wishes.length - 1].key;
-      grid().innerHTML = "";
-      data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-      if (data.hasMore) {
-        if (sideBtn) sideBtn.style.display = "inline-flex";
-        document.getElementById("loadmore-wrap").style.display = "block";
-      } else {
-        if (sideBtn) sideBtn.style.display = "none";
-        document.getElementById("loadmore-wrap").style.display = "none";
-      }
-      if (adminMode) renderAdminReplyButtons();
     })
     .catch(function(err){
       console.warn("wishes load:", err);
-      grid().innerHTML = '<div class="w-empty">Wishes will appear here.</div>';
+      if (!grid().children.length || grid().querySelector(".wish-skel")) {
+        grid().innerHTML = '<div class="w-empty">Wishes will appear here.</div>';
+      }
     });
 }
 function loadMore() {
