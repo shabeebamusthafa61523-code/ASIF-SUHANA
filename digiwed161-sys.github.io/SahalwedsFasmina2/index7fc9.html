@@ -453,12 +453,14 @@ section{position:relative;z-index:2}
 .fc-inner{width:46px;height:46px;border-radius:50%;background:rgba(142,169,198,.12);
   display:flex;align-items:center;justify-content:center;color:var(--cloud2)}
 .fc-inner svg{width:22px;height:22px}
-.compliments-strip{text-align:center;margin-top:48px;padding-top:38px;
-  border-top:1px solid rgba(142,169,198,.14);
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:rgba(255,255,255,.4)}
-.compliments-strip b{color:var(--cloud2);font-weight:400;font-style:normal}
-.compliments-lbl{display:block;font-family:'Cinzel',serif;font-style:normal;font-size:9px;
-  letter-spacing:.32em;text-transform:uppercase;color:var(--cloud-deep);margin-bottom:12px}
+.compliments-strip{text-align:center;margin-top:40px;padding-top:32px;
+  border-top:1px solid rgba(169,128,60,.28)}
+.compliments-lbl{display:block;font-family:'Cinzel',serif;font-style:normal;font-size:9.5px;
+  letter-spacing:.32em;text-transform:uppercase;color:var(--cloud-deep);margin-bottom:8px}
+.compliments-val{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,3.2vw,26px);
+  color:var(--navy);letter-spacing:.04em;line-height:1.4}
+.compliments-val b{font-weight:600;color:var(--navy)}
+.compliments-val span{font-style:italic;color:var(--cloud-deep);font-size:clamp(16px,2.4vw,20px);margin-left:6px}
 
 /* ── BLESSING (du'a) ── */
 .family-blessing{background:rgba(223,235,247,.50);padding:80px 0;position:relative;z-index:2}
@@ -1067,6 +1069,11 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
       and <em>unite you together in goodness.</em>&rdquo;
       <cite>The Prophetic Du&rsquo;a for the Newly Wed</cite>
     </p>
+
+    <div class="compliments-strip reveal">
+      <span class="compliments-lbl">Best Compliments</span>
+      <div class="compliments-val"><b>Mujeeb Rahman</b> <span>from Qatar</span></div>
+    </div>
   </div>
 </section>
 
