@@ -1096,7 +1096,7 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
 
     <div class="wwall">
       <div class="wish-count-header">
-        <p class="wish-count-label"><span id="wishCount">3</span> blessings received</p>
+        <p class="wish-count-label"><span id="wishCount">2</span> blessings received</p>
       </div>
       <div id="wgrid">
         <div class="wcard" data-key="6ace09b23f37417038c3bca0">
@@ -1126,8 +1126,8 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
           </div>
         </div>
       </div>
-      <div id="loadmore-wrap">
-        <button id="viewMoreSideBtn" class="view-more-side-btn" onclick="toggleShowAllWishes()">+ More</button>
+      <div id="loadmore-wrap" style="display:none">
+        <button id="viewMoreSideBtn" class="view-more-side-btn" style="display:none" onclick="toggleShowAllWishes()">+ More</button>
       </div>
     </div>
   </div>
@@ -1201,22 +1201,13 @@ var ALL_PRELOADED_WISHES = [
     likes: 0,
     reply: null,
     ts: 1791887557203
-  },
-  {
-    key: "6acdf9042ad840efd7a79fb4",
-    name: "xfdg",
-    msg: "dxtrg",
-    time: "13 Oct, 9:25 AM",
-    likes: 0,
-    reply: null,
-    ts: 1791883524788
   }
 ];
 
 var PRELOADED_WISHES = {
-  total: 3,
-  hasMore: true,
-  wishes: ALL_PRELOADED_WISHES.slice(0, 2)
+  total: 2,
+  hasMore: false,
+  wishes: ALL_PRELOADED_WISHES
 };
 
 var FIREBASE_CONFIG = {
@@ -1703,7 +1694,7 @@ function toggleShowAllWishes() {
       if (data && data.wishes && data.wishes.length) {
         grid().innerHTML = "";
         data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+        try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
         if (adminMode) renderAdminReplyButtons();
       }
     })
@@ -1799,7 +1790,7 @@ function loadInitial() {
 
   // 1. Instant 0ms render from localStorage cache or preloaded data
   try {
-    var cached = localStorage.getItem(LS + "cached_wishes");
+    var cached = localStorage.getItem(LS + "cached_wishes_v2");
     var toRender = null;
     if (cached) {
       toRender = JSON.parse(cached);
@@ -1818,7 +1809,7 @@ function loadInitial() {
   var p = __wishesPromise || fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE).then(function(r){ return r.json(); });
   p.then(function(data){
     if (data && data.wishes) {
-      try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+      try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
       renderWishesData(data);
     }
   }).catch(function(err){
@@ -1890,13 +1881,13 @@ function submitWish() {
     g.insertBefore(newCard, g.firstChild);
 
     try {
-      var cached = localStorage.getItem(LS + "cached_wishes");
+      var cached = localStorage.getItem(LS + "cached_wishes_v2");
       if (cached) {
         var cObj = JSON.parse(cached);
         if (cObj && cObj.wishes) {
           cObj.wishes.unshift(newWish);
           cObj.total = (cObj.total || 0) + 1;
-          localStorage.setItem(LS + "cached_wishes", JSON.stringify(cObj));
+          localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(cObj));
         }
       }
     } catch(e) {}
