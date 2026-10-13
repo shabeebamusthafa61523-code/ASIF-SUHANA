@@ -32,7 +32,7 @@
 <!-- runtime origins (standard #17) -->
 <link rel="preconnect" href="https://asif-suhana.onrender.com" crossorigin>
 <link rel="dns-prefetch" href="https://asif-suhana.onrender.com">
-<link rel="preload" href="https://asif-suhana.onrender.com/api/wishes?page=1&limit=3" as="fetch" crossorigin>
+<link rel="preload" href="https://asif-suhana.onrender.com/api/wishes?page=1&limit=2" as="fetch" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
 <link rel="preconnect" href="https://imagedelivery.net/">
@@ -509,11 +509,12 @@ textarea.wfield{min-height:96px}
   box-shadow:0 4px 18px rgba(125,91,36,.10);margin:0}
 .wish-count-label span{color:var(--navy);font-weight:600;font-size:13px}
 .view-more-side-btn{display:inline-flex;align-items:center;justify-content:center;
-  font-family:'Cinzel',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--navy);background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(246,240,228,.96));
-  border:1px solid rgba(212,175,55,.45);padding:9px 20px;border-radius:30px;cursor:pointer;
-  box-shadow:0 4px 14px rgba(125,91,36,.10);transition:all .2s ease;font-weight:600}
-.view-more-side-btn:hover{border-color:rgba(212,175,55,.75);background:#fff;transform:translateY(-1px)}
+  font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--navy);background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(244,248,252,.95));
+  border:1px solid rgba(212,175,55,.5);padding:7px 20px;border-radius:24px;cursor:pointer;
+  box-shadow:0 3px 12px rgba(125,91,36,.12);transition:all .2s ease;font-weight:600}
+.view-more-side-btn:hover{border-color:rgba(212,175,55,.85);background:#fff;transform:translateY(-1px);box-shadow:0 6px 18px rgba(125,91,36,.18)}
+.view-more-side-btn:active{transform:scale(.97)}
 #wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;text-align:left}
 .wcard{background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(246,250,255,.93));
   border:1px solid rgba(212,175,55,.3);border-radius:10px;padding:16px 18px;
@@ -554,7 +555,7 @@ textarea.wfield{min-height:96px}
 @keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .w-empty{grid-column:1/-1;text-align:center;font-family:'Cormorant Garamond',serif;
   font-style:italic;color:var(--ink2);opacity:.85;padding:26px 0}
-#loadmore-wrap{margin-top:20px;display:flex;justify-content:flex-end}
+#loadmore-wrap{margin-top:22px;display:flex;justify-content:center;align-items:center}
 #loadMoreBtn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.24em;
   text-transform:uppercase;color:var(--navy);background:#fff;border:1px solid var(--line);
   border-radius:30px;padding:12px 28px;cursor:pointer}
@@ -1124,22 +1125,9 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
             </button>
           </div>
         </div>
-        <div class="wcard" data-key="6acdf9042ad840efd7a79fb4">
-          <div class="wc-top">
-            <div class="wc-av">X</div>
-            <div class="wc-meta"><div class="wc-name">xfdg</div><div class="wc-time">13 Oct, 9:25 AM</div></div>
-          </div>
-          <p class="wc-msg">dxtrg</p>
-          <div class="wc-footer">
-            <button class="wc-heart" onclick="likeWish('6acdf9042ad840efd7a79fb4', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
-              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
-              <span class="wc-hcnt"></span>
-            </button>
-          </div>
-        </div>
       </div>
-      <div id="loadmore-wrap" style="display:none">
-        <button id="viewMoreSideBtn" class="view-more-side-btn" style="display:none" onclick="toggleShowAllWishes()">+ More</button>
+      <div id="loadmore-wrap">
+        <button id="viewMoreSideBtn" class="view-more-side-btn" onclick="toggleShowAllWishes()">+ More</button>
       </div>
     </div>
   </div>
@@ -1190,43 +1178,45 @@ var COUPLE_LABEL     = "Asif Rahman & Suhana Farha";
 /* Early prefetch for instant response */
 var __wishesPromise = null;
 try {
-  __wishesPromise = fetch(API_BASE_URL + "/api/wishes?page=1&limit=3")
+  __wishesPromise = fetch(API_BASE_URL + "/api/wishes?page=1&limit=2")
     .then(function(r){ return r.json(); })
     .catch(function(){ return null; });
 } catch(e){}
 
+var ALL_PRELOADED_WISHES = [
+  {
+    key: "6ace09b23f37417038c3bca0",
+    name: "Mujeeb rahman",
+    msg: "Wish u a Happy married life bro..",
+    time: "13 Oct, 10:36 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791887794380
+  },
+  {
+    key: "6ace08c53f37417038c3bc98",
+    name: "Friend",
+    msg: "All the best guys",
+    time: "13 Oct, 10:32 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791887557203
+  },
+  {
+    key: "6acdf9042ad840efd7a79fb4",
+    name: "xfdg",
+    msg: "dxtrg",
+    time: "13 Oct, 9:25 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791883524788
+  }
+];
+
 var PRELOADED_WISHES = {
   total: 3,
-  hasMore: false,
-  wishes: [
-    {
-      key: "6ace09b23f37417038c3bca0",
-      name: "Mujeeb rahman",
-      msg: "Wish u a Happy married life bro..",
-      time: "13 Oct, 10:36 AM",
-      likes: 0,
-      reply: null,
-      ts: 1791887794380
-    },
-    {
-      key: "6ace08c53f37417038c3bc98",
-      name: "Friend",
-      msg: "All the best guys",
-      time: "13 Oct, 10:32 AM",
-      likes: 0,
-      reply: null,
-      ts: 1791887557203
-    },
-    {
-      key: "6acdf9042ad840efd7a79fb4",
-      name: "xfdg",
-      msg: "dxtrg",
-      time: "13 Oct, 9:25 AM",
-      likes: 0,
-      reply: null,
-      ts: 1791883524788
-    }
-  ]
+  hasMore: true,
+  wishes: ALL_PRELOADED_WISHES.slice(0, 2)
 };
 
 var FIREBASE_CONFIG = {
@@ -1687,33 +1677,37 @@ function adminUploadCover() {
 }
 
 /* ===== WISHES ===== */
-var PAGE_SIZE = 3;
+var PAGE_SIZE = 2;
 var oldestKey = null, reachedEnd = false, recentlySubmittedTs = 0, liveStarted = false, wishesBound = false;
 function grid(){ return document.getElementById("wgrid"); }
 function initials(n){ return String(n||"?").trim().split(/\s+/).map(function(w){ return w[0]; }).slice(0,2).join("").toUpperCase(); }
 
 function toggleShowAllWishes() {
   var btn = document.getElementById("viewMoreSideBtn");
-  if (reachedEnd) return;
-  btn.style.opacity = ".6";
-  btn.textContent = "Loading...";
+  var wrap = document.getElementById("loadmore-wrap");
+  reachedEnd = true;
+
+  // Instant display of all known wishes (0ms)
+  if (typeof ALL_PRELOADED_WISHES !== "undefined" && ALL_PRELOADED_WISHES.length) {
+    grid().innerHTML = "";
+    ALL_PRELOADED_WISHES.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+  }
+  if (wrap) wrap.style.display = "none";
+  if (btn) btn.style.display = "none";
+  if (adminMode) renderAdminReplyButtons();
+
+  // Sync latest from API in background
   fetch(API_BASE_URL + "/api/wishes?page=1&limit=100")
     .then(function(r){ return r.json(); })
     .then(function(data){
-      btn.style.opacity = "1";
-      if (!data.wishes || !data.wishes.length) return;
-      grid().innerHTML = "";
-      data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-      reachedEnd = true;
-      btn.textContent = "All Loaded ✓";
-      btn.style.borderColor = "rgba(142,169,198,.6)";
-      document.getElementById("loadmore-wrap").style.display = "none";
-      if (adminMode) renderAdminReplyButtons();
+      if (data && data.wishes && data.wishes.length) {
+        grid().innerHTML = "";
+        data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+        if (adminMode) renderAdminReplyButtons();
+      }
     })
-    .catch(function(){
-      btn.style.opacity = "1";
-      btn.textContent = "+ More";
-    });
+    .catch(function(){});
 }
 
 function heartSVG(filled) {
@@ -1770,21 +1764,22 @@ function renderWishesData(data) {
   if (!data) return;
   setWishCount(data.total || 0);
   var sideBtn = document.getElementById("viewMoreSideBtn");
+  var wrap = document.getElementById("loadmore-wrap");
   if (!data.wishes || !data.wishes.length) {
     grid().innerHTML = '<div class="w-empty">Be the first to send a blessing 🤍</div>';
     if (sideBtn) sideBtn.style.display = "none";
+    if (wrap) wrap.style.display = "none";
     return;
   }
-  oldestKey = data.wishes[data.wishes.length - 1].key;
+  // Initially only show 2 wishes unless "+ More" has been clicked
+  var toShow = reachedEnd ? data.wishes : data.wishes.slice(0, 2);
+  oldestKey = toShow[toShow.length - 1].key;
   grid().innerHTML = "";
-  data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-  if (data.hasMore) {
-    if (sideBtn) sideBtn.style.display = "inline-flex";
-    document.getElementById("loadmore-wrap").style.display = "block";
-  } else {
-    if (sideBtn) sideBtn.style.display = "none";
-    document.getElementById("loadmore-wrap").style.display = "none";
-  }
+  toShow.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+
+  var hasMore = !reachedEnd && (data.hasMore || (data.total && data.total > 2) || (data.wishes && data.wishes.length > 2));
+  if (sideBtn) sideBtn.style.display = hasMore ? "inline-flex" : "none";
+  if (wrap) wrap.style.display = hasMore ? "flex" : "none";
   if (adminMode) renderAdminReplyButtons();
 }
 
