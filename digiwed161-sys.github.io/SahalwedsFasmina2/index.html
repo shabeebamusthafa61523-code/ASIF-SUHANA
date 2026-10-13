@@ -1096,14 +1096,38 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
 
     <div class="wwall">
       <div class="wish-count-header">
-        <p class="wish-count-label" style="display:none"><span id="wishCount">0</span> blessings received</p>
+        <p class="wish-count-label"><span id="wishCount">3</span> blessings received</p>
       </div>
       <div id="wgrid">
-        <div class="wish-skel"></div>
-        <div class="wish-skel"></div>
+        <div class="wcard" data-key="6ace09b23f37417038c3bca0">
+          <div class="wc-top">
+            <div class="wc-av">MR</div>
+            <div class="wc-meta"><div class="wc-name">Mujeeb rahman</div><div class="wc-time">13 Oct, 10:36 AM</div></div>
+          </div>
+          <p class="wc-msg">Wish u a Happy married life bro..</p>
+          <div class="wc-footer">
+            <button class="wc-heart" onclick="likeWish('6ace09b23f37417038c3bca0', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
+              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
+              <span class="wc-hcnt"></span>
+            </button>
+          </div>
+        </div>
+        <div class="wcard" data-key="6ace08c53f37417038c3bc98">
+          <div class="wc-top">
+            <div class="wc-av">F</div>
+            <div class="wc-meta"><div class="wc-name">Friend</div><div class="wc-time">13 Oct, 10:32 AM</div></div>
+          </div>
+          <p class="wc-msg">All the best guys</p>
+          <div class="wc-footer">
+            <button class="wc-heart" onclick="likeWish('6ace08c53f37417038c3bc98', this, this.querySelector('.wc-heart-ico'), this.querySelector('.wc-hcnt'))">
+              <span class="wc-heart-ico"><svg viewBox="0 0 24 24" width="15" height="15" style="display:block" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.3l-1.45-1.32C5.4 14.36 2 11.28 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.49L12 20.3z"/></svg></span>
+              <span class="wc-hcnt"></span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div id="loadmore-wrap" style="display:none">
-        <button id="viewMoreSideBtn" class="view-more-side-btn" style="display:none" onclick="toggleShowAllWishes()">+ More</button>
+      <div id="loadmore-wrap">
+        <button id="viewMoreSideBtn" class="view-more-side-btn" onclick="toggleShowAllWishes()">+ More</button>
       </div>
     </div>
   </div>
@@ -1158,6 +1182,42 @@ try {
     .then(function(r){ return r.json(); })
     .catch(function(){ return null; });
 } catch(e){}
+
+var ALL_PRELOADED_WISHES = [
+  {
+    key: "6ace09b23f37417038c3bca0",
+    name: "Mujeeb rahman",
+    msg: "Wish u a Happy married life bro..",
+    time: "13 Oct, 10:36 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791887794380
+  },
+  {
+    key: "6ace08c53f37417038c3bc98",
+    name: "Friend",
+    msg: "All the best guys",
+    time: "13 Oct, 10:32 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791887557203
+  },
+  {
+    key: "6acdf9042ad840efd7a79fb4",
+    name: "xfdg",
+    msg: "dxtrg",
+    time: "13 Oct, 9:25 AM",
+    likes: 0,
+    reply: null,
+    ts: 1791883524788
+  }
+];
+
+var PRELOADED_WISHES = {
+  total: 3,
+  hasMore: true,
+  wishes: ALL_PRELOADED_WISHES.slice(0, 2)
+};
 
 var FIREBASE_CONFIG = {
   apiKey:"AIzaSyB41fvxvl1KeHOro6WKJ72o22izuCpJ-b4",
@@ -1625,28 +1685,29 @@ function initials(n){ return String(n||"?").trim().split(/\s+/).map(function(w){
 function toggleShowAllWishes() {
   var btn = document.getElementById("viewMoreSideBtn");
   var wrap = document.getElementById("loadmore-wrap");
-  if (!btn) return;
-  btn.style.opacity = ".6";
-  btn.textContent = "Loading...";
+  reachedEnd = true;
 
-  // Fetch full wishes list dynamically from database
+  // Instant display of all known wishes (0ms)
+  if (typeof ALL_PRELOADED_WISHES !== "undefined" && ALL_PRELOADED_WISHES.length) {
+    grid().innerHTML = "";
+    ALL_PRELOADED_WISHES.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+  }
+  if (wrap) wrap.style.display = "none";
+  if (btn) btn.style.display = "none";
+  if (adminMode) renderAdminReplyButtons();
+
+  // Sync latest from API in background
   fetch(API_BASE_URL + "/api/wishes?page=1&limit=100")
     .then(function(r){ return r.json(); })
     .then(function(data){
-      btn.style.opacity = "1";
-      if (!data.wishes || !data.wishes.length) return;
-      reachedEnd = true;
-      grid().innerHTML = "";
-      data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-      if (wrap) wrap.style.display = "none";
-      if (btn) btn.style.display = "none";
-      try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
-      if (adminMode) renderAdminReplyButtons();
+      if (data && data.wishes && data.wishes.length) {
+        grid().innerHTML = "";
+        data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
+        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+        if (adminMode) renderAdminReplyButtons();
+      }
     })
-    .catch(function(){
-      btn.style.opacity = "1";
-      btn.textContent = "+ More";
-    });
+    .catch(function(){});
 }
 
 function heartSVG(filled) {
@@ -1660,18 +1721,6 @@ function buildReplyBlock(reply) {
   var rm = document.createElement("div"); rm.className = "wc-reply-msg"; rm.textContent = String(reply.msg || "");
   rb.append(lbl, rm); return rb;
 }
-function formatWishTime(ts, fallback) {
-  if (ts) {
-    var d = new Date(Number(ts));
-    if (!isNaN(d.getTime())) {
-      var dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      var timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-      return dateStr + ', ' + timeStr;
-    }
-  }
-  return fallback || '';
-}
-
 /* guest text ALWAYS via textContent — never innerHTML (standard #1) */
 function wishCard(key, w) {
   var d = document.createElement("div");
@@ -1680,7 +1729,7 @@ function wishCard(key, w) {
   var av = document.createElement("div"); av.className = "wc-av"; av.textContent = initials(w.name);
   var meta = document.createElement("div");
   var nm = document.createElement("div"); nm.className = "wc-name"; nm.textContent = String(w.name || "");
-  var tm = document.createElement("div"); tm.className = "wc-time"; tm.textContent = formatWishTime(w.ts, w.time);
+  var tm = document.createElement("div"); tm.className = "wc-time"; tm.textContent = String(w.time || "");
   meta.append(nm, tm); top.append(av, meta);
   var msg = document.createElement("p"); msg.className = "wc-msg"; msg.textContent = String(w.msg || "");
   var ftr = document.createElement("div"); ftr.className = "wc-footer";
@@ -1748,28 +1797,34 @@ function loadInitial() {
   if (wishesBound) return; wishesBound = true;
   currentPage = 1;
 
-  // 1. If previous session cached wishes, render preview immediately
+  // 1. Instant 0ms render from localStorage cache or preloaded data
   try {
-    var cached = localStorage.getItem(LS + "cached_wishes_v2");
+    var cached = localStorage.getItem(LS + "cached_wishes");
+    var toRender = null;
     if (cached) {
-      var parsed = JSON.parse(cached);
-      if (parsed && parsed.wishes && parsed.wishes.length) {
-        renderWishesData(parsed);
-      }
+      toRender = JSON.parse(cached);
     }
-  } catch(e) {}
+    if (!toRender || !toRender.wishes || !toRender.wishes.length) {
+      toRender = PRELOADED_WISHES;
+    }
+    if (toRender && toRender.wishes && toRender.wishes.length) {
+      renderWishesData(toRender);
+    }
+  } catch(e) {
+    if (typeof PRELOADED_WISHES !== "undefined") renderWishesData(PRELOADED_WISHES);
+  }
 
-  // 2. Fetch fresh live data from database
+  // 2. Fetch fresh wishes from API in background (using early prefetch if already started)
   var p = __wishesPromise || fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE).then(function(r){ return r.json(); });
   p.then(function(data){
     if (data && data.wishes) {
-      try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
+      try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
       renderWishesData(data);
     }
   }).catch(function(err){
     console.warn("wishes load:", err);
     if (!grid().children.length || grid().querySelector(".wish-skel")) {
-      grid().innerHTML = '<div class="w-empty">Be the first to send a blessing 🤍</div>';
+      if (typeof PRELOADED_WISHES !== "undefined") renderWishesData(PRELOADED_WISHES);
     }
   });
 }
@@ -1811,12 +1866,10 @@ function submitWish() {
   btn.disabled = true; btn.style.opacity = ".7";
   btn.textContent = "Sending Your Blessing...";
   
-  var nowTs = Date.now();
-  var clientTime = formatWishTime(nowTs);
   fetch(API_BASE_URL + "/api/wishes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name, msg: msg, time: clientTime, ts: nowTs })
+    body: JSON.stringify({ name: name, msg: msg })
   })
   .then(function(r){
     if (!r.ok) throw new Error("Failed to send");
@@ -1837,13 +1890,13 @@ function submitWish() {
     g.insertBefore(newCard, g.firstChild);
 
     try {
-      var cached = localStorage.getItem(LS + "cached_wishes_v2");
+      var cached = localStorage.getItem(LS + "cached_wishes");
       if (cached) {
         var cObj = JSON.parse(cached);
         if (cObj && cObj.wishes) {
           cObj.wishes.unshift(newWish);
           cObj.total = (cObj.total || 0) + 1;
-          localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(cObj));
+          localStorage.setItem(LS + "cached_wishes", JSON.stringify(cObj));
         }
       }
     } catch(e) {}
