@@ -1096,13 +1096,13 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
 
     <div class="wwall">
       <div class="wish-count-header">
-        <p class="wish-count-label"><span id="wishCount">3</span> blessings received</p>
+        <p class="wish-count-label">Blessings received</p>
       </div>
       <div id="wgrid">
         <div class="wcard" data-key="6ace09b23f37417038c3bca0">
           <div class="wc-top">
             <div class="wc-av">MR</div>
-            <div class="wc-meta"><div class="wc-name">Mujeeb rahman</div><div class="wc-time">13 Oct, 10:36 AM</div></div>
+            <div class="wc-meta"><div class="wc-name">Mujeeb rahman</div><div class="wc-time">13 Oct, 4:06 PM</div></div>
           </div>
           <p class="wc-msg">Wish u a Happy married life bro..</p>
           <div class="wc-footer">
@@ -1115,7 +1115,7 @@ body.pdf-capturing .reveal{opacity:1!important;transform:none!important}
         <div class="wcard" data-key="6ace08c53f37417038c3bc98">
           <div class="wc-top">
             <div class="wc-av">F</div>
-            <div class="wc-meta"><div class="wc-name">Friend</div><div class="wc-time">13 Oct, 10:32 AM</div></div>
+            <div class="wc-meta"><div class="wc-name">Friend</div><div class="wc-time">13 Oct, 4:02 PM</div></div>
           </div>
           <p class="wc-msg">All the best guys</p>
           <div class="wc-footer">
@@ -1188,7 +1188,7 @@ var ALL_PRELOADED_WISHES = [
     key: "6ace09b23f37417038c3bca0",
     name: "Mujeeb rahman",
     msg: "Wish u a Happy married life bro..",
-    time: "13 Oct, 10:36 AM",
+    time: "13 Oct, 4:06 PM",
     likes: 0,
     reply: null,
     ts: 1791887794380
@@ -1197,16 +1197,16 @@ var ALL_PRELOADED_WISHES = [
     key: "6ace08c53f37417038c3bc98",
     name: "Friend",
     msg: "All the best guys",
-    time: "13 Oct, 10:32 AM",
+    time: "13 Oct, 4:02 PM",
     likes: 0,
     reply: null,
     ts: 1791887557203
   },
   {
     key: "6acdf9042ad840efd7a79fb4",
-    name: "xfdg",
-    msg: "dxtrg",
-    time: "13 Oct, 9:25 AM",
+    name: "Family",
+    msg: "Happy married life",
+    time: "13 Oct, 2:55 PM",
     likes: 0,
     reply: null,
     ts: 1791883524788
@@ -1703,7 +1703,7 @@ function toggleShowAllWishes() {
       if (data && data.wishes && data.wishes.length) {
         grid().innerHTML = "";
         data.wishes.forEach(function(it){ grid().appendChild(wishCard(it.key, it)); });
-        try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+        try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
         if (adminMode) renderAdminReplyButtons();
       }
     })
@@ -1721,6 +1721,18 @@ function buildReplyBlock(reply) {
   var rm = document.createElement("div"); rm.className = "wc-reply-msg"; rm.textContent = String(reply.msg || "");
   rb.append(lbl, rm); return rb;
 }
+function formatWishTime(ts, fallback) {
+  if (ts) {
+    var d = new Date(Number(ts));
+    if (!isNaN(d.getTime())) {
+      var dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+      var timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }).toUpperCase();
+      return dateStr + ', ' + timeStr;
+    }
+  }
+  return fallback || '';
+}
+
 /* guest text ALWAYS via textContent — never innerHTML (standard #1) */
 function wishCard(key, w) {
   var d = document.createElement("div");
@@ -1729,7 +1741,7 @@ function wishCard(key, w) {
   var av = document.createElement("div"); av.className = "wc-av"; av.textContent = initials(w.name);
   var meta = document.createElement("div");
   var nm = document.createElement("div"); nm.className = "wc-name"; nm.textContent = String(w.name || "");
-  var tm = document.createElement("div"); tm.className = "wc-time"; tm.textContent = String(w.time || "");
+  var tm = document.createElement("div"); tm.className = "wc-time"; tm.textContent = formatWishTime(w.ts, w.time);
   meta.append(nm, tm); top.append(av, meta);
   var msg = document.createElement("p"); msg.className = "wc-msg"; msg.textContent = String(w.msg || "");
   var ftr = document.createElement("div"); ftr.className = "wc-footer";
@@ -1788,7 +1800,7 @@ function loadWishCount() {
   if (el && el.textContent && el.textContent !== "0") return;
   fetch(API_BASE_URL + "/api/wishes?page=1&limit=1")
     .then(function(r){ return r.json(); })
-    .then(function(o){ if (o && o.total !== undefined) setWishCount(o.total); })
+    .then(function(o){ if (o && o.total !== undefined && o.total > 0) setWishCount(o.total); })
     .catch(function(){});
 }
 
@@ -1799,7 +1811,7 @@ function loadInitial() {
 
   // 1. Instant 0ms render from localStorage cache or preloaded data
   try {
-    var cached = localStorage.getItem(LS + "cached_wishes");
+    var cached = localStorage.getItem(LS + "cached_wishes_v2");
     var toRender = null;
     if (cached) {
       toRender = JSON.parse(cached);
@@ -1817,8 +1829,8 @@ function loadInitial() {
   // 2. Fetch fresh wishes from API in background (using early prefetch if already started)
   var p = __wishesPromise || fetch(API_BASE_URL + "/api/wishes?page=1&limit=" + PAGE_SIZE).then(function(r){ return r.json(); });
   p.then(function(data){
-    if (data && data.wishes) {
-      try { localStorage.setItem(LS + "cached_wishes", JSON.stringify(data)); } catch(e) {}
+    if (data && data.wishes && data.wishes.length) {
+      try { localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(data)); } catch(e) {}
       renderWishesData(data);
     }
   }).catch(function(err){
@@ -1866,10 +1878,12 @@ function submitWish() {
   btn.disabled = true; btn.style.opacity = ".7";
   btn.textContent = "Sending Your Blessing...";
   
+  var nowTs = Date.now();
+  var clientTime = formatWishTime(nowTs);
   fetch(API_BASE_URL + "/api/wishes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name, msg: msg })
+    body: JSON.stringify({ name: name, msg: msg, time: clientTime, ts: nowTs })
   })
   .then(function(r){
     if (!r.ok) throw new Error("Failed to send");
@@ -1890,13 +1904,13 @@ function submitWish() {
     g.insertBefore(newCard, g.firstChild);
 
     try {
-      var cached = localStorage.getItem(LS + "cached_wishes");
+      var cached = localStorage.getItem(LS + "cached_wishes_v2");
       if (cached) {
         var cObj = JSON.parse(cached);
         if (cObj && cObj.wishes) {
           cObj.wishes.unshift(newWish);
           cObj.total = (cObj.total || 0) + 1;
-          localStorage.setItem(LS + "cached_wishes", JSON.stringify(cObj));
+          localStorage.setItem(LS + "cached_wishes_v2", JSON.stringify(cObj));
         }
       }
     } catch(e) {}
